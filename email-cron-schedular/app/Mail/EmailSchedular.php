@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use PHPUnit\Framework\Constraint\Exception;
 
 class EmailSchedular extends Mailable
 {
@@ -28,7 +29,12 @@ class EmailSchedular extends Mailable
      */
     public function build()
     {
-        return $this->from('example@example.com')
-                    ->view('emails.newThisWeek');
+        $address = 'info@ngumicreatives.com';
+        $subject = 'New Designers This Week!';
+        $name = 'Ngumi Creatives';
+
+            return $this->view('emails.newThisWeek')
+                            ->from($address, $name)
+                            ->subject($subject);
     }
 }

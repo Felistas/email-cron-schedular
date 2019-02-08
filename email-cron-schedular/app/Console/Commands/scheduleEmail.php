@@ -5,6 +5,9 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Mail\EmailSchedular;
 use Illuminate\Support\Facades\Mail;
+use Guzzle\Http\Exception\ClientErrorResponseException;
+use Twilio\Rest\Client;
+
 
 class scheduleEmail extends Command
 {
@@ -13,7 +16,7 @@ class scheduleEmail extends Command
      *
      * @var string
      */
-    protected $signature = 'schedule:email';
+    protected $signature = 'cron:emailShedular';
 
     /**
      * The console command description.
@@ -22,17 +25,15 @@ class scheduleEmail extends Command
      */
     protected $description = 'Send weekly emails to customers';
 
-    private $h;
 
     /**
      * Create a new command instance.
      *
      * @return void
      */
-    public function __construct(EmailSchedular $h)
+    public function __construct()
     {
         parent::__construct();
-        $this->h=$h;
     }
 
     /**
@@ -42,8 +43,22 @@ class scheduleEmail extends Command
      */
     public function handle()
     {
-        //
-        Mail::to('felistaswaceera@gmail.com')->send(new EmailSchedular());
-        dump("Success");
+        try {
+            $emails = ['felistaswaceera@gmail.com', 'waceerangumi@gmail.com'];
+            Mail::to($emails)->send(new EmailSchedular());
+        }
+        catch(\Exception $e){
+            if ($e->getCode() == 400) {
+                $twilio = new Client(env('TWILIO_SID'), env('TWILIO_TOKEN'));
+                $message = $twilio->messages
+                                ->create("+254716915775",
+                                        array(
+                                            "body" => "Unable to send email to recipient $emails[0]",
+                                            "from" => "+17072719064"
+                                        )
+                                );
+                dump($message);
+            }
+        }
     }
 }
